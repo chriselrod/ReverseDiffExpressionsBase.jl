@@ -1,0 +1,13 @@
+name = "ReverseDiffExpressionsBase"
+uuid = "6c4e8705-acc8-45e6-99c7-2e34d4f10b96"
+authors = ["Chris Elrod <elrodc@gmail.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
