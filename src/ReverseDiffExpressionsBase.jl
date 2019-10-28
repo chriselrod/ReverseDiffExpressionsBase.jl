@@ -52,8 +52,7 @@ end
 
 function ∂getindex end
 function ∂mul end
-# function radj end
-@inline seed(x) = Ref(x)
+@inline alloc_adjoint(x::T) where {T<:Real} = Ref{T}()
 @inline uninitialized(::Nothing) = nothing
 @inline uninitialized(x::Base.RefValue) = Uninitialized(x)
 @inline uninitialized(x::VectorizationBase.Pointer) = UninitializedPtr(pointer(x))
@@ -71,9 +70,9 @@ include("seed_increments.jl")
 adj(out, a) = Symbol("##∂", out, "/∂", a, "##")
 adj(a) = adj(:target, a)
 
-@def_stackpointer_fallback RESERVED_INCREMENT_SEED_RESERVED! ∂getindex seed radj uninitialized
+@def_stackpointer_fallback RESERVED_INCREMENT_SEED_RESERVED! ∂getindex alloc_adjoint uninitialized
 function __init__()
-    @add_stackpointer_method RESERVED_INCREMENT_SEED_RESERVED! ∂getindex seed radj uninitialized
+    @add_stackpointer_method RESERVED_INCREMENT_SEED_RESERVED! ∂getindex alloc_adjoint uninitialized
 end
 
 
