@@ -41,8 +41,7 @@ end
         vb = $largerv
         vse = $(Expr(:tuple,[:(vs[$w]) for w ∈ 1:Ws]...,[Core.VecElement(zero(T)) for _ ∈ Ws+1:W2]...))
         Target(
-            SIMDPirates.vadd(vb, vse),
-            t.s
+            SIMDPirates.vadd(vb, vse), t.s
         )
     end
 end
@@ -62,8 +61,7 @@ end
         vb = $largerv
         vse = $(Expr(:tuple,[:(vs[$w]) for w ∈ 1:Ws]...,[Core.VecElement(zero(T)) for _ ∈ Ws+1:W2]...))
         Target(
-            SIMDPirates.vadd(vb, vse),
-            t.s
+            SIMDPirates.vadd(vb, vse), t.s
         )
     end
 end
@@ -121,3 +119,6 @@ end
     end
 end
 
+@inline tadd(x::T, y::T) where {T} = SIMDPirates.vadd(x, y)
+@inline tadd(x::Vec{W,T}, y::T) where {W,T} = Target(x, y)
+@inline tadd(x::T, y::Vec{W,T}) where {W,T} = Target(y, x)

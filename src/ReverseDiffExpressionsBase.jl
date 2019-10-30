@@ -4,7 +4,7 @@ using StackPointers, SIMDPirates, VectorizationBase
 
 import SIMDPirates: vadd, vsum, vifelse
 
-export uninitialized, isinitialized
+export uninitialized, isinitialized, tadd
 
 export Zero, One
 
@@ -87,6 +87,9 @@ function ∂mul end
 @inline uninitialized(::Nothing) = nothing
 @inline uninitialized(x::Base.RefValue) = Uninitialized(x)
 @inline uninitialized(x::VectorizationBase.Pointer) = UninitializedPtr(pointer(x))
+@inline initialized(x) = x
+@inline initialized(x::UninitializedRef) = x.data
+@inline initialized(x::UninitializedPtr) = Pointer(x.ptr)
 isinitialized(::Any) = true
 isinitialized(::Type{<:UninitializedRef}) = false
 isinitialized(::Type{<:UninitializedPtr}) = false
