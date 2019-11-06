@@ -32,3 +32,5 @@ isinitialized(::Type{<:UninitializedPtr}) = false
 @inline zero_initialize!(x::Base.RefValue{T}) where {T} = x[] = zero(T)
 @inline zero_initialize!(x::Pointer{T}) where {T} = x[] = zero(T)
 
+@inline alloc_adjoint(x::T) where {T} = Ref{T}()
+@inline alloc_adjoint(sp::StackPointer, A::AbstractArray) = similar(sp, A)
