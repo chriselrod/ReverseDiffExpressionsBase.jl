@@ -20,9 +20,11 @@ include("seed_increments.jl")
 adj(out, a) = Symbol("##∂", out, "/∂", a, "##")
 adj(a) = adj(:target, a)
 
-@def_stackpointer_fallback RESERVED_INCREMENT_SEED_RESERVED! ∂getindex alloc_adjoint uninitialized
+
+# RESERVED_INCREMENT_SEED_RESERVED! ∂getindex uninitialized
+@def_stackpointer_fallback alloc_adjoint
 function __init__()
-    @add_stackpointer_method RESERVED_INCREMENT_SEED_RESERVED! ∂getindex alloc_adjoint uninitialized
+    @add_stackpointer_method alloc_adjoint
 end
 
 
