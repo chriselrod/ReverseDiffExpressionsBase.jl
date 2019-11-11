@@ -17,6 +17,7 @@ include("identities.jl")
 include("uninitialized_references.jl")
 include("target.jl")
 include("seed_increments.jl")
+include("fallback.jl")
 
 adj(out, a) = Symbol("##∂", out, "/∂", a, "##")
 adj(a) = adj(:target, a)
