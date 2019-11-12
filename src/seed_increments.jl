@@ -2,15 +2,17 @@
 
 const InitializedReference{T} = Union{Base.RefValue{T}, Pointer{T}}
 
-@inline RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a) = (c[] =  a; nothing)
+@inline deref(x::Number) = x
+@inline deref(x::InitializedReference) = x[]
+@inline RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a) = (c[] =  deref(a); nothing)
 @inline function RESERVED_INCREMENT_SEED_RESERVED!(c::InitializedReference, a)
-    c[] = SIMDPirates.vadd(c[], a); nothing
+    c[] = SIMDPirates.vadd(c[], deref(a)); nothing
 end
 @inline function RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a, b)
-    c[] = SIMDPirates.vmul(a, b); nothing
+    c[] = SIMDPirates.vmul(deref(a), deref(b)); nothing
 end
 @inline function RESERVED_INCREMENT_SEED_RESERVED!(c::InitializedReference, a, b)
-    c[] = SIMDPirates.vmuladd(a, b, c[]); nothing
+    c[] = SIMDPirates.vmuladd(deref(a), deref(b), c[]); nothing
 end
 # @inline RESERVED_DECREMENT_SEED_RESERVED!(c::Uninitialized, a) = (c[] = -a; nothing)
 # @inline function RESERVED_DECREMENT_SEED_RESERVED!(c, a)
