@@ -1,15 +1,15 @@
 
 
-const Reference{T} = Union{Base.RefValue{T}, Pointer{T}}
+const InitializedReference{T} = Union{Base.RefValue{T}, Pointer{T}}
 
-@inline RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a::Reference) = (c[] =  a; nothing)
-@inline function RESERVED_INCREMENT_SEED_RESERVED!(c::Reference, a::Reference)
+@inline RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a) = (c[] =  a; nothing)
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(c::InitializedReference, a)
     c[] = SIMDPirates.vadd(c[], a); nothing
 end
-@inline function RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a::Reference, b::Reference)
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(c::AbstractUninitializedReference, a, b)
     c[] = SIMDPirates.vmul(a, b); nothing
 end
-@inline function RESERVED_INCREMENT_SEED_RESERVED!(c::Reference, a::Reference, b::Reference)
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(c::InitializedReference, a, b)
     c[] = SIMDPirates.vmuladd(a, b, c[]); nothing
 end
 # @inline RESERVED_DECREMENT_SEED_RESERVED!(c::Uninitialized, a) = (c[] = -a; nothing)
@@ -22,5 +22,16 @@ end
 # @inline function RESERVED_DECREMENT_SEED_RESERVED!(c, a, b)
     # c[] = SIMDPirates.fnmadd(a, b, c[]); nothing
 # end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::AbstractUninitializedReference, A::AbstractArray
+)
+    c[] = sum(A)
+end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::InitializedReference, A::AbstractArray
+)
+    c[] = Base.FastMath.add_fast(c[], sum(A))
+end
+
 
 

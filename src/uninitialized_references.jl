@@ -20,7 +20,7 @@ function ∂getindex end
 function ∂mul end
 @inline alloc_adjoint(x::T) where {T<:Real} = Ref{T}()
 @inline uninitialized(::Nothing) = nothing
-@inline uninitialized(x::Base.RefValue) = Uninitialized(x)
+@inline uninitialized(x::Base.RefValue) = UninitializedRef(x)
 @inline uninitialized(x::Pointer) = UninitializedPtr(pointer(x))
 @inline initialized(x) = x
 @inline initialized(x::UninitializedRef) = x.data
