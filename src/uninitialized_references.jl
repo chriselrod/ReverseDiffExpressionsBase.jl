@@ -21,7 +21,11 @@ function ∂mul end
 @inline alloc_adjoint(x::T) where {T<:Real} = Ref{T}()
 @inline uninitialized(::Nothing) = nothing
 @inline uninitialized(x::Base.RefValue) = UninitializedRef(x)
-@inline uninitialized(x::Pointer) = UninitializedPtr(pointer(x))
+@inline function uninitialized(x::Pointer)
+    # ptr = pointer(x)
+    # SIMDPirates.lifetime_start!(ptr)
+    UninitializedPtr(pointer(x))#ptr)
+end
 @inline initialized(x) = x
 @inline initialized(x::UninitializedRef) = x.data
 @inline initialized(x::UninitializedPtr) = Pointer(x.ptr)
