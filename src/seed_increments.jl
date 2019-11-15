@@ -34,6 +34,36 @@ end
 )
     c[] = Base.FastMath.add_fast(c[], sum(A))
 end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::AbstractUninitializedReference, A::AbstractArray, B::AbstractArray
+)
+    c[] = dot(A, B)
+end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::InitializedReference, A::AbstractArray, B::AbstractArray
+)
+    c[] = Base.FastMath.add_fast(c[], dot(A, B))
+end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::AbstractUninitializedReference, A, B::AbstractArray
+)
+    c[] = Base.FastMath.mul_fast(deref(A), sum(B))
+end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::InitializedReference, A, B::AbstractArray
+)
+    c[] = Base.FastMath.add_fast(c[], Base.FastMath.mul_fast(deref(A), sum(B)))
+end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::AbstractUninitializedReference, A::AbstractArray, B
+)
+    c[] = Base.FastMath.mul_fast(deref(B), sum(A))
+end
+@inline function RESERVED_INCREMENT_SEED_RESERVED!(
+    c::InitializedReference, A::AbstractArray, B
+)
+    c[] = Base.FastMath.add_fast(c[], Base.FastMath.mul_fast(deref(B), sum(A)))
+end
 
 
 

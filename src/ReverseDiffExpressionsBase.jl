@@ -1,6 +1,6 @@
 module ReverseDiffExpressionsBase
 
-using StackPointers, SIMDPirates, VectorizationBase
+using StackPointers, SIMDPirates, VectorizationBase, LinearAlgebra
 
 import SIMDPirates: vadd, vsum, vifelse
 
