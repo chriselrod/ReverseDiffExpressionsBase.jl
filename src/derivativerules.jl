@@ -24,7 +24,7 @@ A few examples:
     exp(x)
 instructions = [   :exp,     :fmadd    ]
 dependencies = [ [ -1 ], [ 1,0,-2 ] ]
-sections = [ 1, 1, 2 ]
+sections = [ 1:1, 2:1, 2:2 ]
 returns  = [ 1, 2 ]
 
 Means that we use the following instruction sequence for calculating the value and derivative of `y = exp(x)`:
@@ -42,7 +42,7 @@ then `y = %1` and `∂x = %2`.
     atan(x, y)
 instructions = [   atan,  abs2, abs2,   +,     /,     -,    *,      *   ]
 dependencies = [ [-2,-1], [-2], [-1], [1,2], [0,4], [-2], [7,5], [-1,5] ]
-sections = [ 1,5,7,8 ]
+sections = [ 1:1, 2:5, 6:7, 8:8 ]
 returns = [ 1, 7, 8 ]
 
 
@@ -72,7 +72,7 @@ z = %1
     sincos(x)
 instructions = [ sincos, first,  last,    -,     *,     *,    tuple   ]
 dependencies = [  [-1],  [ 1 ], [ 1 ], [ 2 ], [3,0], [4,0], [3, 4] ]
-sections = [ 1, 1, 7 ]
+sections = [ 1:1, 2:1, 2:7 ]
 returns = [ 1, 7 ]
 
 For `y = sincos(x)`
@@ -137,10 +137,10 @@ const NOADDITION = Dict{Instruction,Instruction}(
     Instruction(:vfmadd_fast) => Instruction(:vmul),
     Instruction(:vfnmadd) => Instruction(:vnmul),
     Instruction(:vfnmadd_fast) => Instruction(:vnmul),
-    # Instruction(:ReverseDiffExpressionsBase,:vmullog2add) => Instruction(:ReverseDiffExpressionsBase,:vmullog2),
-    # Instruction(:ReverseDiffExpressionsBase,:vmullog10add) => Instruction(:ReverseDiffExpressionsBase,:vmullog10)
-    Instruction(:ReverseDiffExpressionsBase,:vdivlog2add) => Instruction(:ReverseDiffExpressionsBase,:vdivlog2),
-    Instruction(:ReverseDiffExpressionsBase,:vdivlog10add) => Instruction(:ReverseDiffExpressionsBase,:vdivlog10)
+    Instruction(:vmullog2add) => Instruction(:vmullog2),
+    Instruction(:vmullog10add) => Instruction(:vmullog10),
+    Instruction(:vdivlog2add) => Instruction(:vdivlog2),
+    Instruction(:vdivlog10add) => Instruction(:vdivlog10)
 )
 
 for arity ∈ 2:8
@@ -183,26 +183,32 @@ end
 # fmadd for the ∂ updates so compiler can elide zero-initialization
 let deps = [ [-3, -2, -1], [-2], [0,2,-6], [-3], [4,0,-5], [0, -4] ], sections = [ 1:1, 2:1, 2:3, 4:5, 5:6 ], returns = [ 1, 3, 5, 6 ]
     for fma_instr ∈ (:muladd, :vmuladd, :vfma, :vfmadd, :vfmadd_fast)
+        fma_instr2 = :vfmadd_fast
         DERIVATIVERULES[InstructionArgs(fma_instr, 3)] = DiffRule(
-            Instruction[ fma_instr, :adjoint, :vfmadd_fast, :adjoint, :vfmadd_fast, :vadd ],
+            Instruction[ fma_instr, :adjoint, fma_instr2, :adjoint, fma_instr2, :vadd ],
             deps, sections
         )
     end
     for vfnmadd_instr ∈ (:vfnmadd, :vfnmadd_fast)
+        fnmaadd_instr2 = :vfnmadd_fast
         DERIVATIVERULES[InstructionArgs(vfnmadd_instr, 3)] = DiffRule(
-            Instruction[ vfnmadd_instr, :adjoint, :vfnmadd_fast, :adjoint, :vfnmadd_fast, :vadd ],
+            Instruction[ vfnmadd_instr, :adjoint, vfnmadd_instr2, :adjoint, vfnmadd_instr2, :vadd ],
             deps, sections
         )
     end
     for vfmsub_instr ∈ (:vfmsub, :vfmsub_fast)
+        # fmadd = vfmsub_instr === :vfmsub ? :vfmadd : :vfmadd_fast
+        fmadd = :vfmadd_fast
         DERIVATIVERULES[InstructionArgs(vfmsub_instr, 3)] = DiffRule(
-            Instruction[ vfnmadd_instr, :adjoint, :vfmadd_fast, :adjoint, :vfmadd_fast, :vnsub ],
+            Instruction[ vfnmadd_instr, :adjoint, fmadd, :adjoint, fmadd, :vnsub ],
             deps, sections
         )
     end
     for vfnmsub_instr ∈ (:vfnmsub, :vfnmsub_fast)
+        # fnmadd = vfnmsub_instr === :vfnmsub ? :vfnmadd : :vfnmadd_fast
+        fnmadd = :vfnmadd_fast
         DERIVATIVERULES[InstructionArgs(vfnmsub_instr, 3)] = DiffRule(
-            Instruction[ vfnmadd_instr, :adjoint, :vfnmadd_fast, :adjoint, :vfnmadd_fast, :vnsub ],
+            Instruction[ vfnmadd_instr, :adjoint, fnmadd, :adjoint, fnmadd, :vnsub ],
             deps, sections
         )
     end
@@ -210,33 +216,25 @@ end # let
 
 
 DERIVATIVERULES[InstructionArgs(:exp, 1)] = DiffRule(
-    Instruction[ :exp, :fmadd_fast ],
+    Instruction[ :exp, :fmadd ],
     [ [-1], [1,0,-2] ],
     [ 1:1, 2:1, 2:2 ],
     [ 1, 2 ]
 )
 DERIVATIVERULES[InstructionArgs(:expm1, 1)] = DiffRule(
-    Instruction[ :expm1, :vadd1, :fmadd_fast ],
+    Instruction[ :expm1, :vadd1, :fmadd ],
     [ [-1], 1, [2,0,-2] ],
     [ 1:1, 2:1, 2:3 ],
     [ 1, 3 ]
 )
-const LOG2 = log(2)
-@inline vmullog2(x::T) where {T<:Number} = vmul(T(LOG2), x) 
-@inline vmullog2(v::V) where {W,T,V<:AbstractSIMDVector{W,T}} = vmul(vbroadcast(V, T(LOG2)), v)
-# @inline vmullog2add(x::T, y) where {T<:Number} = vmuladd(T(LOG2), x, y)
-# @inline vmullog2add(v::V, y) where {W,T,V<:AbstractSIMDVector{W,T}} = vmuladd(vbroadcast(V, T(LOG2)), v, y)
 DERIVATIVERULES[InstructionArgs(:exp2, 1)] = DiffRule(
-    Instruction[ :exp, Instruction(:ReverseDiffExpressionsBase,:vmullog2), :fmadd_fast ],
+    Instruction[ :exp, :vmullog2, :fmadd ],
     [ [-1], [1], [2,0,-2] ],
     [ 1:1, 2:1, 2:3 ],
     [ 1, 3 ]
 )
-const LOG10 = log(10)
-@inline vmullog10(x::T) where {T<:Number} = vmul(T(LOG10), x) 
-@inline vmullog10(v::V) where {W,T,V<:AbstractSIMDVector{W,T}} = vmul(vbroadcast(V, T(LOG10)), v)
 DERIVATIVERULES[InstructionArgs(:exp10, 1)] = DiffRule(
-    Instruction[ :exp, Instruction(:ReverseDiffExpressionsBase,:vmullog10), :fmadd_fast ],
+    Instruction[ :exp, :vmullog10, :fmadd ],
     [ [-1], [1], [2,0,-2] ],
     [ 1:1, 2:1, 2:3 ],
     [ 1, 3 ]
@@ -260,18 +258,7 @@ for cb ∈ (:cbrt, :cbrt_fast)
     )
 end
 
-const INVLOG2 = 1 / log(2)
-@inline vdivlog2(x::T) where {T<:Number} = vmul(T(INVLOG2), x) 
-@inline vdivlog2(v::V) where {W,T,V<:AbstractSIMDVector{W,T}} = vmul(vbroadcast(V, T(INVLOG2)), v)
-@inline vdivlog2add(x::T, y) where {T<:Number} = vfmadd_fast(T(INVLOG2), x, y)
-@inline vdivlog2add(v::V, y) where {W,T,V<:AbstractSIMDVector{W,T}} = vfmadd_fast(vbroadcast(V, T(INVLOG2)), v, y)
-const INVLOG10 = 1 / log(10)
-@inline vdivlog10(x::T) where {T<:Number} = vmul(T(INVLOG10), x) 
-@inline vdivlog10(v::V) where {W,T,V<:AbstractSIMDVector{W,T}} = vmul(vbroadcast(V, T(INVLOG10)), v)
-@inline vdivlog10add(x::T, y) where {T<:Number} = vfmadd_fast(T(INVLOG10), x, y)
-@inline vdivlog10add(v::V, y) where {W,T,V<:AbstractSIMDVector{W,T}} = vfmadd_fast(vbroadcast(V, T(INVLOG10)), v, y)
-
-for (ln, comb) ∈ ((:log,Instruction(:vadd)), (:log_fast,Instruction(:vadd)), (:vlog,Instruction(:vadd)), (:log2,Instruction(:ReverseDiffExpressionsBase,:vmullog2add)), (:log10,ReverseDiffExpressionsBase(:vmullog10add)))
+for (ln, comb) ∈ ((:log,Instruction(:vadd)), (:log_fast,Instruction(:vadd)), (:vlog,Instruction(:vadd)), (:log2,Instruction(:vmullog2add)), (:log10,Instruction(:vmullog10add)))
     DERIVATIVERULES[InstructionArgs(ln,1)] = DiffRule(
         Instruction[ ln, :vfdiv, comb ],
         [ [-1], [0,-1], [2, -2] ],
@@ -309,16 +296,14 @@ DERIVATIVERULES[InstructionArgs(:cos,1)] = DiffRule(
     [ 3, 4 ]
 )
 
-@inline vfmaddaddone(x::T) where {T} = vfmadd(x, x, VectorizationBase.vone(promote_type(T)))
-@inline vfmaddaddone(x::T1, y::T2) where {T1,T2} = vfmadd(x, y, VectorizationBase.vone(promote_type(T1,T2)))
 DERIVATIVERULES[InstructionArgs(:tan,1)] = DiffRule(
-    Instruction[ :tan, Instruction(:ReverseDiffExpressionsBase, :vfmaddaddone), :vfmadd_fast ],
+    Instruction[ :tan, Instruction(:vfmaddaddone), :vfmadd_fast ],
     [ [-1], [1], [2,0,-2] ],
     [ 1:1, 2:1, 2:3 ],
     [ 1, 3 ]
 )
 DERIVATIVERULES[InstructionArgs(:cot,1)] = DiffRule(
-    Instruction[ :cot, Instruction(:ReverseDiffExpressionsBase, :vfmaddaddone), :vfnmadd_fast ],
+    Instruction[ :cot, Instruction(:vfmaddaddone), :vfnmadd_fast ],
     [ [-1], [1], [2,0,-2] ],
     [ 1:1, 2:1, 2:3 ],
     [ 1, 3 ]
