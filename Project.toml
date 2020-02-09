@@ -10,9 +10,9 @@ StackPointers = "062a3e2c-34b1-4659-9cae-7af421e0d832"
 VectorizationBase = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
 
 [compat]
-SIMDPirates = "0.1.0"
-StackPointers = "0.1.0"
-VectorizationBase = "0.1.1"
+SIMDPirates = "0"
+StackPointers = "0"
+VectorizationBase = "0"
 julia = "1"
 
 [extras]
