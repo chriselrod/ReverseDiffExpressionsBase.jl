@@ -162,7 +162,7 @@ const MAKEUPDATING = Dict{Instruction,Instruction}(
 
 for arity ∈ 2:8
     let deps = [ collect(-arity:-1) ], sections = [ 1:1, 2:1 ], returns = [ i == 1 ? 1 : 0 for i ∈ 1:arity ]
-        for add ∈ (:+, :vadd, :evadd)
+        for add ∈ [:+, :vadd, :evadd]
             instructions = [ Instruction(add) ]
             DERIVATIVERULES[InstructionArgs(add, arity)] = DiffRule(
                 instructions, deps, sections, returns, arity
@@ -171,7 +171,7 @@ for arity ∈ 2:8
     end
 end
 let deps = [ [-2, -1], [-1], [0,2], [-2], [4,0] ], sections = [ 1:1, 2:1, 2:3, 4:5], returns = [ 1, 3, 5 ]
-    for mul ∈ (:*, :vmul, :evmul)
+    for mul ∈ [:*, :vmul, :evmul]
         DERIVATIVERULES[InstructionArgs(mul, 2)] = DiffRule(
             Instruction[ mul, :adjoint, :vmul, :adjoint, :vmul ],
             deps, sections, returns, 2
@@ -179,7 +179,7 @@ let deps = [ [-2, -1], [-1], [0,2], [-2], [4,0] ], sections = [ 1:1, 2:1, 2:3, 4
     end
 end
 let deps = [ [ -2,-1], [0], [0] ], sections = [1:1,2:1,2:2,3:3], returns = [1,2,3]
-    for sub ∈ (:-, :vsub, :evsub)
+    for sub ∈ [:-, :vsub, :evsub]
         instructions = fill(Instruction(:vsub), 3)
         instructions[1] = Instruction(sub)
         DERIVATIVERULES[InstructionArgs(sub,2)] = DiffRule(
@@ -188,7 +188,7 @@ let deps = [ [ -2,-1], [0], [0] ], sections = [1:1,2:1,2:2,3:3], returns = [1,2,
     end
 end
 let deps = [ [-2,-1], [-1], [0,2], [1], [4,3,-3] ], sections = [ 1:1, 2:3, 4:3, 4:5 ], returns = [1,3,5]
-    for div ∈ (:/, :vfdiv)
+    for div ∈ [:/, :vfdiv]
         instructions = [ div, :adjoint, :vfdiv, :adjoint, :vnmul ]
         DERIVATIVERULES[InstructionArgs(sub,2)] = DiffRule(
             instructions, deps, sections, returns, 2
@@ -198,14 +198,14 @@ end
 
 # fmadd for the ∂ updates so compiler can elide zero-initialization
 let deps = [ [-3, -2, -1], [-2], [0,2], [-3], [4,0] ], sections = [ 1:1, 2:1, 2:3, 4:5, 6:5 ], returns = [ 1, 3, 5, 0 ]
-    for fma_instr ∈ (:muladd, :fma, :vmuladd, :vfma, :vfmadd, :vfmadd_fast)
+    for fma_instr ∈ [:muladd, :fma, :vmuladd, :vfma, :vfmadd, :vfmadd_fast]
        # fma_instr2 = :vfmadd_fast
         DERIVATIVERULES[InstructionArgs(fma_instr, 3)] = DiffRule(
             Instruction[ fma_instr, :adjoint, :vmul, :adjoint, :vmul ],
             deps, sections, returns, 3
         )
     end
-    for vfnmadd_instr ∈ (:vfnmadd, :vfnmadd_fast)
+    for vfnmadd_instr ∈ [:vfnmadd, :vfnmadd_fast]
         # fnmaadd_instr2 = :vfnmadd_fast
         DERIVATIVERULES[InstructionArgs(vfnmadd_instr, 3)] = DiffRule(
             Instruction[ vfnmadd_instr, :adjoint, :vnmul, :adjoint, :vnmul ],
@@ -214,14 +214,14 @@ let deps = [ [-3, -2, -1], [-2], [0,2], [-3], [4,0] ], sections = [ 1:1, 2:1, 2:
     end
 end
 let deps = [ [-3, -2, -1], [-2], [0,2], [-3], [4,0], [0] ], sections = [ 1:1, 2:1, 2:3, 4:5, 6:6 ], returns = [ 1, 3, 5, 6 ]
-    for vfmsub_instr ∈ (:vfmsub, :vfmsub_fast)
+    for vfmsub_instr ∈ [:vfmsub, :vfmsub_fast]
         # fmadd = vfmsub_instr === :vfmsub ? :vfmadd : :vfmadd_fast
         DERIVATIVERULES[InstructionArgs(vfmsub_instr, 3)] = DiffRule(
             Instruction[ vfnmadd_instr, :adjoint, :vmul, :adjoint, :vmul, :vsub ],
             deps, sections, returns, 3
         )
     end
-    for vfnmsub_instr ∈ (:vfnmsub, :vfnmsub_fast)
+    for vfnmsub_instr ∈ [:vfnmsub, :vfnmsub_fast]
         # fnmadd = vfnmsub_instr === :vfnmsub ? :vfnmadd : :vfnmadd_fast
         fnmadd = :vfnmadd_fast
         DERIVATIVERULES[InstructionArgs(vfnmsub_instr, 3)] = DiffRule(
@@ -262,7 +262,7 @@ DERIVATIVERULES[InstructionArgs(:exp10, 1)] = DiffRule(
 )
 
 
-for sq ∈ (:sqrt, :vsqrt)
+for sq ∈ [:sqrt, :vsqrt]
     DERIVATIVERULES[InstructionArgs(sq, 1)] = DiffRule(
         Instruction[ sq, :vmul2, :vfdiv ],
         [ [-1], [1], [0,2] ],
@@ -271,7 +271,7 @@ for sq ∈ (:sqrt, :vsqrt)
         1
     )
 end
-for cb ∈ (:cbrt, :cbrt_fast)
+for cb ∈ [:cbrt, :cbrt_fast]
     DERIVATIVERULES[InstructionArgs(cb,1)] = DiffRule(
         Instruction[ cb, :vabs2, :vmul3, :vfdiv ],
         [ [-1], [1], [2], [0,3] ],
@@ -281,7 +281,7 @@ for cb ∈ (:cbrt, :cbrt_fast)
     )
 end
 
-for (ln, comb) ∈ (:log, :log_fast, :vlog)
+for (ln, comb) ∈ [:log, :log_fast, :vlog]
     DERIVATIVERULES[InstructionArgs(ln,1)] = DiffRule(
         Instruction[ ln, :vfdiv ],
         [ [-1], [0,-1] ],
@@ -290,7 +290,7 @@ for (ln, comb) ∈ (:log, :log_fast, :vlog)
         1
     )
 end
-for (ln, comb) ∈ (:log2,Instruction(:vmullog2)), (:log10,Instruction(:vmullog10)))
+for (ln, comb) ∈ [:log2,Instruction(:vmullog2)), (:log10,Instruction(:vmullog10))]
     DERIVATIVERULES[InstructionArgs(ln,1)] = DiffRule(
         Instruction[ ln, :vfdiv, comb ],
         [ [-1], [0,-1], [2] ],
@@ -308,7 +308,7 @@ DERIVATIVERULES[InstructionArgs(:log1p,1)] = DiffRule(
     1
 )
 
-for p ∈ (:^, :pow)
+for p ∈ [:^, :pow]
     DERIVATIVERULES[InstructionArgs(p,2)] = DiffRule(
         Instruction[ :log, :vmul, :exp, :vfdiv, :vmul, :vmul ],
         [ [-2], [1,-1], [2], [-1,-2], [4,0], [3,0] ],
@@ -348,7 +348,7 @@ DERIVATIVERULES[InstructionArgs(:cot,1)] = DiffRule(
     1
 )
 
-for at ∈ (:atan, :atan_fast)
+for at ∈ [:atan, :atan_fast]
     DERIVATIVERULES[InstructionArgs(at, 2)] = DiffRule(
         Instruction[ at, :vabs2, :vfmadd_fast, :vfdiv, :vnmul, :vmul ],
         [ [-2,-1], [ -2 ], [-1,-1,1], [0,3], [-2,4], [-1,4] ],
