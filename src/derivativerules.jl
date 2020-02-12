@@ -117,10 +117,10 @@ end
 # end
 # InstructionArgs(instr::Symbol, num_args) = InstructionArgs(Instruction(instr), args)
 num_parents(dr::DiffRule) = dr.num_parents
-function Base.hash(ia::InstructionArgs, h)
+function Base.hash(ia::InstructionArgs, h::UInt)
     hash(ia.instr, hash(ia.num_args, h))
 end
-function Base.:(=)(ia1::InstructionArgs, ia2::InstructionArgs)
+function Base.:(==)(ia1::InstructionArgs, ia2::InstructionArgs)
     instr1 = ia1.instr; instr2 = ia2.instr
     # Rough order of likelihood they differ
     instr1.instr === instr2.instr && ia1.num_args == ia2.num_args && instr1.mod === instr2.mod
@@ -190,7 +190,7 @@ end
 let deps = [ [-2,-1], [-1], [0,2], [1], [4,3,-3] ], sections = [ 1:1, 2:3, 4:3, 4:5 ], returns = [1,3,5]
     for div ∈ [:/, :vfdiv]
         instructions = [ div, :adjoint, :vfdiv, :adjoint, :vnmul ]
-        DERIVATIVERULES[InstructionArgs(sub,2)] = DiffRule(
+        DERIVATIVERULES[InstructionArgs(div,2)] = DiffRule(
             instructions, deps, sections, returns, 2
         )
     end
@@ -217,15 +217,15 @@ let deps = [ [-3, -2, -1], [-2], [0,2], [-3], [4,0], [0] ], sections = [ 1:1, 2:
     for vfmsub_instr ∈ [:vfmsub, :vfmsub_fast]
         # fmadd = vfmsub_instr === :vfmsub ? :vfmadd : :vfmadd_fast
         DERIVATIVERULES[InstructionArgs(vfmsub_instr, 3)] = DiffRule(
-            Instruction[ vfnmadd_instr, :adjoint, :vmul, :adjoint, :vmul, :vsub ],
+            Instruction[ vfmsub_instr, :adjoint, :vmul, :adjoint, :vmul, :vsub ],
             deps, sections, returns, 3
         )
     end
     for vfnmsub_instr ∈ [:vfnmsub, :vfnmsub_fast]
         # fnmadd = vfnmsub_instr === :vfnmsub ? :vfnmadd : :vfnmadd_fast
-        fnmadd = :vfnmadd_fast
+        # fnmadd = :vfnmadd_fast
         DERIVATIVERULES[InstructionArgs(vfnmsub_instr, 3)] = DiffRule(
-            Instruction[ vfnmadd_instr, :adjoint, :vnmul, :adjoint, :vnmul, :vsub ],
+            Instruction[ vfnmsub_instr, :adjoint, :vnmul, :adjoint, :vnmul, :vsub ],
             deps, sections, returns, 3
         )
     end
@@ -241,7 +241,7 @@ DERIVATIVERULES[InstructionArgs(:exp, 1)] = DiffRule(
 )
 DERIVATIVERULES[InstructionArgs(:expm1, 1)] = DiffRule(
     Instruction[ :expm1, :vadd1, :vmul ],
-    [ [-1], 1, [2,0] ],
+    [ [-1], [1], [2,0] ],
     [ 1:1, 2:1, 2:3 ],
     [ 1, 3 ],
     1
@@ -281,7 +281,7 @@ for cb ∈ [:cbrt, :cbrt_fast]
     )
 end
 
-for (ln, comb) ∈ [:log, :log_fast, :vlog]
+for ln ∈ [:log, :log_fast, :vlog]
     DERIVATIVERULES[InstructionArgs(ln,1)] = DiffRule(
         Instruction[ ln, :vfdiv ],
         [ [-1], [0,-1] ],
@@ -290,7 +290,7 @@ for (ln, comb) ∈ [:log, :log_fast, :vlog]
         1
     )
 end
-for (ln, comb) ∈ [:log2,Instruction(:vmullog2)), (:log10,Instruction(:vmullog10))]
+for (ln, comb) ∈ [(:log2,Instruction(:vmullog2)), (:log10,Instruction(:vmullog10))]
     DERIVATIVERULES[InstructionArgs(ln,1)] = DiffRule(
         Instruction[ ln, :vfdiv, comb ],
         [ [-1], [0,-1], [2] ],
