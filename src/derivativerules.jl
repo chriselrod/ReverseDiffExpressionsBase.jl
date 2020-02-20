@@ -348,6 +348,10 @@ DERIVATIVERULES[InstructionArgs(:cot,1)] = DiffRule(
     1
 )
 
+DERIVATIVERULES[InstructionArgs(:constrain,2)] = DiffRule(
+    
+)
+
 for at ∈ [:atan, :atan_fast]
     DERIVATIVERULES[InstructionArgs(at, 2)] = DiffRule(
         Instruction[ at, :vabs2, :vfmadd_fast, :vfdiv, :vnmul, :vmul ],
