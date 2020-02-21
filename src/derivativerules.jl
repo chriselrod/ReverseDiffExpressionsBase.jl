@@ -348,8 +348,12 @@ DERIVATIVERULES[InstructionArgs(:cot,1)] = DiffRule(
     1
 )
 
-DERIVATIVERULES[InstructionArgs(:constrain,2)] = DiffRule(
-    
+DERIVATIVERULES[InstructionArgs(:constrain,3)] = DiffRule(
+    Instruction[ :constrain_pullback, :first, :last, :vmul  ],
+    [ [-3,-2,-1], [1], [1], [3,0] ],
+    [ 1:2, 3:2, 3:4 ],
+    [ 2, 4 ]
+    3
 )
 
 for at ∈ [:atan, :atan_fast]
