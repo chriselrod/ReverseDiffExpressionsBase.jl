@@ -128,35 +128,37 @@ end
 
 const DERIVATIVERULES = Dict{InstructionArgs,DiffRule}()
 # Sometimes we may want to drop additions and set equal to a value rather than update.
-"""
-Drop last argument to the function
-"""
-const NOADDITION = Dict{Instruction,Instruction}(
-    Instruction(:+) => Instruction(:identity),
-    Instruction(:vadd) => Instruction(:identity),
-    Instruction(:vnsub) => Instruction(:vsub),
-    Instruction(:muladd) => Instruction(:*),
-    Instruction(:vmuladd) => Instruction(:vmul),
-    Instruction(:vfma) => Instruction(:vmul),
-    Instruction(:vfmadd) => Instruction(:vmul),
-    Instruction(:vfmadd_fast) => Instruction(:vmul),
-    Instruction(:vfnmadd) => Instruction(:vnmul),
-    Instruction(:vfnmadd_fast) => Instruction(:vnmul),
-    Instruction(:vmullog2add) => Instruction(:vmullog2),
-    Instruction(:vmullog10add) => Instruction(:vmullog10),
-    Instruction(:vdivlog2add) => Instruction(:vdivlog2),
-    Instruction(:vdivlog10add) => Instruction(:vdivlog10)
-)
+# """
+# Drop last argument to the function
+# """
+# const NOADDITION = Dict{Instruction,Instruction}(
+#     Instruction(:+) => Instruction(:identity),
+#     Instruction(:vadd) => Instruction(:identity),
+#     Instruction(:vnsub) => Instruction(:vsub),
+#     Instruction(:muladd) => Instruction(:*),
+#     Instruction(:vmuladd) => Instruction(:vmul),
+#     Instruction(:vfma) => Instruction(:vmul),
+#     Instruction(:vfmadd) => Instruction(:vmul),
+#     Instruction(:vfmadd_fast) => Instruction(:vmul),
+#     Instruction(:vfnmadd) => Instruction(:vnmul),
+#     Instruction(:vfnmadd_fast) => Instruction(:vnmul),
+#     Instruction(:vmullog2add) => Instruction(:vmullog2),
+#     Instruction(:vmullog10add) => Instruction(:vmullog10),
+#     Instruction(:vdivlog2add) => Instruction(:vdivlog2),
+#     Instruction(:vdivlog10add) => Instruction(:vdivlog10)
+# )
+# To support mutating and non-mutating APIs.
+# Generated code should be SAC-style
 const MAKEUPDATING = Dict{Instruction,Instruction}(
-    Instruction(:identity) => Instruction(:vadd),
-    Instruction(:vsub) => Instruction(:vnsub),
-    Instruction(:*) => Instruction(:vfmadd),
-    Instruction(:vmul) => Instruction(:vfmadd),
-    Instruction(:vnmul) => Instruction(:vfnmadd),
-    Instruction(:vmullog2) => Instruction(:vmullog2add),
-    Instruction(:vmullog10) => Instruction(:vmullog10add),
-    Instruction(:vdivlog2) => Instruction(:vdivlog2add),
-    Instruction(:vdivlog10) => Instruction(:vdivlog10add)
+    Instruction(:identity) => Instruction(:vadd!),
+    Instruction(:vsub) => Instruction(:vsub!),
+    Instruction(:*) => Instruction(:vfmadd!),
+    Instruction(:vmul) => Instruction(:vfmadd!),
+    Instruction(:vnmul) => Instruction(:vfnmadd!),
+    Instruction(:vmullog2) => Instruction(:vmullog2add!),
+    Instruction(:vmullog10) => Instruction(:vmullog10add!),
+    Instruction(:vdivlog2) => Instruction(:vdivlog2add!),
+    Instruction(:vdivlog10) => Instruction(:vdivlog10add!)
 )
 
 
