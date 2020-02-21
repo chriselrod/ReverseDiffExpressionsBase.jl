@@ -351,10 +351,12 @@ DERIVATIVERULES[InstructionArgs(:cot,1)] = DiffRule(
 )
 
 DERIVATIVERULES[InstructionArgs(:constrain,3)] = DiffRule(
-    Instruction[ :constrain_pullback, :first, :last, :vmul  ],
-    [ [-3,-2,-1], [1], [1], [3,0] ],
-    [ 1:2, 3:2, 3:4 ],
-    [ 2, 4 ]
+    # Args are θ, descript
+    # caller should calc gep(θ, offset) 
+    Instruction[ :constrain_pullback, :first, :last, :constrain_reverse! ],
+    [ [-2,-1], [1], [1], [0, 3, -1] ],
+    [ 1:2, 3:2, 3:4, 5:4 ],
+    [ 2, 4, 0 ]
     3
 )
 

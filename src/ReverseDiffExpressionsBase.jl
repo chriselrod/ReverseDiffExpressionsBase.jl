@@ -15,6 +15,8 @@ using LoopVectorization, OffsetArrays
 function constrain end
 function constrain_pullback end
 function constrain_reverse! end
+function logpdf end
+function ∂logpdf! end
 
 include("derivativerules.jl")
 # include("initialized_variable_tracker.jl")
