@@ -1,7 +1,7 @@
 module ReverseDiffExpressionsBase
 
 # using StackPointers, SIMDPirates, VectorizationBase, LinearAlgebra
-using LoopVectorization, OffsetArrays
+using LoopVectorization, OffsetArrays, VectorizationBase
 
 # import SIMDPirates: vadd, vsum, vifelse
 
@@ -22,7 +22,7 @@ include("derivativerules.jl")
 # include("initialized_variable_tracker.jl")
 include("identities.jl")
 # include("uninitialized_references.jl")
-# include("target.jl")
+include("target.jl")
 # include("seed_increments.jl")
 # include("fallback.jl")
 

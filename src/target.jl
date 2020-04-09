@@ -11,5 +11,5 @@ end
 @inline Base.:(+)(v::NTuple{WV,Core.VecElement{T}}, t::Target{WT,T}) where {WT,WV,T} = Target(LoopVectorization.vadd(t.v, v))
 @inline Base.:(+)(t₁::Target, t₂::Target) = Target(LoopVectorization.vadd(t₁.v, t₂.v))
 @inline Base.sum(t::Target) = LoopVectorization.vsum(t.v)
-@inline VectorizatrionBase.extract_data(t::Target) = t.v
+@inline VectorizationBase.extract_data(t::Target) = t.v
 
