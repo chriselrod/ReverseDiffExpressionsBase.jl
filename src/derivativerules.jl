@@ -117,6 +117,7 @@ end
 # end
 # InstructionArgs(instr::Symbol, num_args) = InstructionArgs(Instruction(instr), args)
 num_parents(dr::DiffRule) = dr.num_parents
+section_two_returns(dr::DiffRule) = length(dr.sections) == length(dr.returns)
 function Base.hash(ia::InstructionArgs, h::UInt)
     hash(ia.instr, hash(ia.num_args, h))
 end
@@ -375,4 +376,28 @@ for at ∈ [:atan, :atan_fast]
         2
     )
 end
+
+@inline second(x) = @inbounds getindex(x, 2)
+@inline third(x) = @inbounds getindex(x, 3)
+@inline fourth(x) = @inbounds getindex(x, 4)
+@inline fifth(x) = @inbounds getindex(x, 5)
+@inline sixth(x) = @inbounds getindex(x, 6)
+@inline seventh(x) = @inbounds getindex(x, 7)
+@inline eighth(x) = @inbounds getindex(x, 8)
+@inline ninth(x) = @inbounds getindex(x, 9)
+@inline callunthunk(f::F, x) where {F} = f(unthunk(x))
+const FALLBACK_RULES = Vector{DiffRule}(undef, 8);
+let getters = [:second, :third, :fourth, :fifth, :sixth, :seventh, :eighth, :ninth]
+    for i ∈ 1:8
+        # Special case `rrule` in handling to add func?
+        FALLBACK_RULES[i] = DiffRule( 
+            Instruction[:rrule, :first, :last, :callunthunk, (getters[1:i])...],
+            [ collect(-i:-1), [1], [1], [3, 0], ([4] for _ ∈ 1:i)... ],
+            [ 1:2, 3:4, (j:j for j ∈ 5:i+4)... ],
+            [ 2, 4, (j for j ∈ 5:i+4)... ],
+            i
+        )
+    end
+end
+              
 

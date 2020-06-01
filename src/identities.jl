@@ -1,7 +1,7 @@
 """
  Additive identity.
 """
-struct Zero end
+struct Zero <: ChainRulesCore.AbstractZero end
 @inline Base.:+(::Zero, a) = a
 @inline Base.:+(a, ::Zero) = a
 @inline Base.:+(::Zero, ::Zero) = Zero()
@@ -32,7 +32,7 @@ struct Zero end
 """
 Multiplicative identity.
 """
-struct One end
+struct One <: ChainRulesCore.AbstractDifferential end
 @inline Base.:*(::One, a) = a
 @inline Base.:*(a, ::One) = a
 @inline Base.:*(::One, ::One) = One()

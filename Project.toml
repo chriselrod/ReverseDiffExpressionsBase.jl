@@ -4,9 +4,12 @@ authors = ["Chris Elrod <elrodc@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+ChainRules = "082447d4-558c-5d27-93f4-14fc19e9eca2"
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LoopVectorization = "bdcacae8-1622-11e9-2a5c-532679323890"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+StackPointers = "062a3e2c-34b1-4659-9cae-7af421e0d832"
 VectorizationBase = "3d5dd08c-fd9d-11e8-17fa-ed2836048c2f"
 
 [compat]

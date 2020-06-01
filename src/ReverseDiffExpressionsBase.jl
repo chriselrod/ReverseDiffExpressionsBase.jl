@@ -1,7 +1,7 @@
 module ReverseDiffExpressionsBase
 
 # using StackPointers, SIMDPirates, VectorizationBase, LinearAlgebra
-using LoopVectorization, OffsetArrays, VectorizationBase
+using LoopVectorization, OffsetArrays, VectorizationBase, ChainRules, StackPointers
 
 # import SIMDPirates: vadd, vsum, vifelse
 
@@ -17,6 +17,8 @@ function constrain_pullback end
 function constrain_reverse! end
 function logpdf end
 function ∂logpdf! end
+
+@inline StackPointers.stack_pointer_call(::typeof(ChainRules.rrule), sp::StackPointer, f::F, args::Vararg{<:Any,N}) where {F, N} = (sp, rrule(f, args...))
 
 include("derivativerules.jl")
 # include("initialized_variable_tracker.jl")
