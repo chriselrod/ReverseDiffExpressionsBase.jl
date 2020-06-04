@@ -161,6 +161,11 @@ const MAKEUPDATING = Dict{Instruction,Instruction}(
     Instruction(:vdivlog2) => Instruction(:vdivlog2add!),
     Instruction(:vdivlog10) => Instruction(:vdivlog10add!)
 )
+const MAKEINPLACE = Dict{Instruction,Instruction}(
+    Instruction(:*) => Instruction(:mul!),
+    Instruction(:vmul) => Instruction(:mul!),
+    Instruction(:vnmul) => Instruction(:nmul!)
+)
 
 
 for arity ∈ 2:8
@@ -357,13 +362,13 @@ DERIVATIVERULES[InstructionArgs(:cot,1)] = DiffRule(
     1
 )
 
-DERIVATIVERULES[InstructionArgs(:constrain,3)] = DiffRule(
+DERIVATIVERULES[InstructionArgs(Instruction(:DistributionParameters,:constrain),3)] = DiffRule(
     # Args are θ, descript
     # caller should calc gep(θ, offset) 
     Instruction[ :constrain_pullback, :first, :last, :constrain_reverse! ],
-    [ [-2,-1], [1], [1], [0, 3, -1] ],
-    [ 1:2, 3:2, 3:4, 5:4 ],
-    [ 2, 4, 0 ],
+    [ [-3, -2, -1], [1], [1], [0, 3, -1] ],
+    [ 1:2, 3:2, 3:4, 5:4, 5:4 ],
+    [ 2, 4, 0, 0 ],
     3
 )
 
