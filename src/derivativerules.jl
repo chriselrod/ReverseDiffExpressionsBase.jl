@@ -372,6 +372,14 @@ DERIVATIVERULES[InstructionArgs(Instruction(:DistributionParameters,:constrain),
     3
 )
 
+DERIVATIVERULES[InstructionArgs(:identity,1)] = DiffRule(
+    Instruction[ :identity, :identity ],
+    [ [-1], [0] ],
+    [ 1:1, 2:1, 2:2 ],
+    [ 1, 2 ],
+    1
+)
+
 for at ∈ [:atan, :atan_fast]
     DERIVATIVERULES[InstructionArgs(at, 2)] = DiffRule(
         Instruction[ at, :vabs2, :vfmadd_fast, :vfdiv, :vnmul, :vmul ],
@@ -382,14 +390,6 @@ for at ∈ [:atan, :atan_fast]
     )
 end
 
-@inline second(x) = @inbounds getindex(x, 2)
-@inline third(x) = @inbounds getindex(x, 3)
-@inline fourth(x) = @inbounds getindex(x, 4)
-@inline fifth(x) = @inbounds getindex(x, 5)
-@inline sixth(x) = @inbounds getindex(x, 6)
-@inline seventh(x) = @inbounds getindex(x, 7)
-@inline eighth(x) = @inbounds getindex(x, 8)
-@inline ninth(x) = @inbounds getindex(x, 9)
 @inline callunthunk(f::F, x) where {F} = f(unthunk(x))
 const FALLBACK_RULES = Vector{DiffRule}(undef, 8);
 let getters = [:second, :third, :fourth, :fifth, :sixth, :seventh, :eighth, :ninth]

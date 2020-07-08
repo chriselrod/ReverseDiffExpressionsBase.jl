@@ -2,6 +2,7 @@ module ReverseDiffExpressionsBase
 
 # using StackPointers, SIMDPirates, VectorizationBase, LinearAlgebra
 using LoopVectorization, OffsetArrays, VectorizationBase, ChainRules, StackPointers
+using LoopVectorization: second, third, fourth, fifth, sixth, seventh, eighth, ninth
 
 # import SIMDPirates: vadd, vsum, vifelse
 
