@@ -193,8 +193,7 @@ let deps = [ [-2, -1], [-1], [0,2], [-2], [4,0] ], sections = [ 1:1, 2:1, 2:3, 4
 end
 let deps = [ [ -2,-1], [0], [0] ], sections = [1:1,2:1,2:2,3:3], returns = [1,2,3]
     for sub ∈ [:-, :vsub, :evsub]
-        instructions = fill(Instruction(:vsub), 3)
-        instructions[1] = Instruction(sub)
+        instructions = Instruction[sub, :identity, :vsub]
         DERIVATIVERULES[InstructionArgs(sub,2)] = DiffRule(
             instructions, deps, sections, returns, 2
         )
@@ -253,10 +252,10 @@ DERIVATIVERULES[InstructionArgs(:exp, 1)] = DiffRule(
     1
 )
 DERIVATIVERULES[InstructionArgs(:expm1, 1)] = DiffRule(
-    Instruction[ :expm1, :vadd1, :vmul ],
-    [ [-1], [1], [2,0] ],
-    [ 1:1, 2:1, 2:3 ],
-    [ 1, 3 ],
+    Instruction[ :expm1, :vfmadd ],
+    [ [-1], [1], [2,0,0] ],
+    [ 1:1, 2:1, 2:2 ],
+    [ 1, 2 ],
     1
 )
 DERIVATIVERULES[InstructionArgs(:exp2, 1)] = DiffRule(
