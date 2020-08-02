@@ -169,20 +169,19 @@ const MAKEINPLACE = Dict{Instruction,Instruction}(
 
 
 for arity ∈ 2:8
-    deps = [ collect(-arity:-1) ]
-    let sections = [ 1:1, 2:1 ], returns = [ iszero(i) ? 1 : 0 for i ∈ 0:arity ]
+    let sections = [ i > 1 ? (i:i) : (i+1):1 for i ∈ 0:arity+1 ], returns = collect(1:arity+1), deps = [ iszero(i) ? collect(-arity:-1) : [0] for i in 0:arity ]
         for add ∈ [:+, :vadd, :evadd]
-            instructions = [ Instruction(add) ]
+            instructions = Instruction[ iszero(i) ? Instruction(add) : Instruction(:identity) for i ∈ 0:arity ]
             DERIVATIVERULES[InstructionArgs(add, arity)] = DiffRule(
                 instructions, deps, sections, returns, arity
             )
         end
     end
-    let sections = [ 1:1, 2:1 ], returns = [ iszero(i) ? 1 : i - 1 - 2arity for i ∈ 0:arity ]
-        DERIVATIVERULES[InstructionArgs(:logdensity, arity)] = DiffRule(
-            [ :∂logdensity! ], deps, sections, returns, arity
-        )
-    end
+    # let sections = [ 1:1, 2:1 ], returns = [ iszero(i) ? 1 : i - 1 - 2arity for i ∈ 0:arity ]
+    #     DERIVATIVERULES[InstructionArgs(:logdensity, arity)] = DiffRule(
+    #         [ :∂logdensity! ], deps, sections, returns, arity
+    #     )
+    # end
 end
 let deps = [ [-2, -1], [-1], [0,2], [-2], [4,0] ], sections = [ 1:1, 2:1, 2:3, 4:5], returns = [ 1, 3, 5 ]
     for mul ∈ [:*, :vmul, :evmul]
@@ -278,8 +277,8 @@ DERIVATIVERULES[InstructionArgs(:exp10, 1)] = DiffRule(
 
 for sq ∈ [:sqrt, :vsqrt]
     DERIVATIVERULES[InstructionArgs(sq, 1)] = DiffRule(
-        Instruction[ sq, :vmul2, :vfdiv ],
-        [ [-1], [1], [0,2] ],
+        Instruction[ sq, :vadd, :vfdiv ],
+        [ [-1], [1,1], [0,2] ],
         [ 1:1, 2:1, 2:3 ],
         [ 1, 3 ],
         1
@@ -380,6 +379,15 @@ DERIVATIVERULES[InstructionArgs(:identity,1)] = DiffRule(
     1
 )
 
+for f ∈ [:abs2, :vabs2]
+    DERIVATIVERULES[InstructionArgs(f,1)] = DiffRule(
+        Instruction[ f, :vadd, :vmul ],
+        [ [-1], [-1,-1], [2,0] ],
+        [ 1:1, 2:1, 2:3 ],
+        [ 1, 3 ],
+        1
+    )
+end
 for at ∈ [:atan, :atan_fast]
     DERIVATIVERULES[InstructionArgs(at, 2)] = DiffRule(
         Instruction[ at, :vabs2, :vfmadd_fast, :vfdiv, :vnmul, :vmul ],
